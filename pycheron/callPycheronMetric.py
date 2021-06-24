@@ -2112,6 +2112,7 @@ def callPycheron(
                         )
 
     elif datatype == "dir":
+        print("##INICIO DIR")
         # create array of jul days
         if jul_start and jul_end is not None:
             date_range = np.arange(jul_start, jul_end + 1)
@@ -2141,12 +2142,19 @@ def callPycheron(
         chan_list = []
         # looping through files
         for i in os.listdir(data):
+            print(i)
             # if file ends with jul date add to list
             if i.endswith(".mseed") or i.endswith(".w"):
                 # get station from name
                 name = i.split("_")[0]
                 sta_list.append(name)
                 chan_list.append(i.split("_")[1])
+            elif i[-1].isdigit():
+                print("wacero fix")
+                name = i.split(".")[1]
+                sta_list.append(name)
+                chan_list.append(i.split(".")[3])
+
         # get unique stations
         un_chans = set(chan_list)
         un_chans = list(un_chans)
@@ -2157,13 +2165,15 @@ def callPycheron(
 
         # aggregate all days of one station into single stream
         if not byDay:
+            print("##INICIO BYDAY")
             # looping through files
             for i in un_sta:
                 stream = []
                 for j in new_dates:
                     for k in os.listdir(data):
                         # if i matches station
-                        if fnmatch.fnmatch(k, "*" + i + "*") and k.endswith(j + ".mseed"):
+                        #if fnmatch.fnmatch(k, "*" + i + "*") and k.endswith(j + ".mseed"):
+                        if fnmatch.fnmatch(k, "*" + i + "*"):
                             # st filename of specific station
                             st = data + "/" + str(k)
                             stream.append(st)
@@ -2306,19 +2316,31 @@ def callPycheron(
                 )
         # process by individual day
         else:
+            print("##INICIO POR FIN")
             # loop through station
+            
             for i in un_sta:
+                print("##Inicio station: %s" %un_sta)
                 stream = []
                 date_list = []
                 for j in new_dates:
                     day = []
                     for k in os.listdir(data):
+                        print("#Data to process: %s" %k)
                         # if i matches station
                         if fnmatch.fnmatch(k, "*" + i + "*") and k.endswith(j + ".mseed"):
-                            # st filename of specific station
+                        #if fnmatch.fnmatch(k, "*" + i + "*"):
+                           # st filename of specific station
                             st = data + "/" + str(k)
                             day.append(st)
                             date_list.append(j)
+                        elif fnmatch.fnmatch(k, "*" + i + "*"):
+                        
+                            st = data + "/" + str(k)
+                            day.append(st)
+                            date_list.append(j)
+
+
                     day = set(day)
                     date = set(date_list)
                     if day:
@@ -2464,6 +2486,7 @@ def callPycheron(
         logger.log("callPycheron(): Total program runtime in minutes - " + str(timestart))
 
     else:
+        print("CTM2")
         logger.error("callPycheron(): Must provide either .mseed, .wfdisc, stream object or data directory")
         sys.exit("callPycheron(): Must provide either .mseed, .wfdisc, stream object or data directory")
 
@@ -4076,7 +4099,7 @@ def main():
             cfg[key] = None
 
     start = time.time()
-
+    print("##INICIO")
     callPycheron(
         output_dir=cfg["output_dir"],
         data=cfg["data"],
